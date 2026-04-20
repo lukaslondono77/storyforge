@@ -82,6 +82,24 @@ const translations = {
     perk2: "Cancel anytime",
     perk3: "New stories weekly",
     perk4: "Author Q&A access",
+  },
+  es: {
+    story_not_found: "Historia no encontrada.",
+    back_btn: "← Volver",
+    written_by: "Escrito por",
+    tier_free: "Gratis",
+    tier_paid: "De pago",
+    edit: "Editar",
+    stat_reads: "Lecturas",
+    stat_subs: "Suscriptores",
+    stat_likes: "Me gusta",
+    btn_follow: "Suscribirse gratis",
+    btn_following: "Suscrito",
+    sign_in_to_interact: "Inicia sesión para interactuar",
+    paywall_title: "Esta historia es para suscriptores",
+    paywall_cta: "Ver planes de suscripción",
+    paywall_signin: "Inicia sesión si ya estás suscrito",
+    plans_title: "Apoya las historias que te mueven.",
   }
 };
 

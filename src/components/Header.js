@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { useI18n } from "../lib/i18n";
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const { lang, setLang } = useI18n();
   const { pathname }     = useLocation();
   const navigate         = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -48,8 +50,21 @@ export default function Header() {
           </>}
         </nav>
 
-        {/* Auth actions */}
+        {/* Actions & Language */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <select 
+            value={lang} 
+            onChange={(e) => setLang(e.target.value)}
+            style={{ 
+              border: "none", background: "var(--bg2)", borderRadius: 6, padding: "4px 8px",
+              fontSize: 12, cursor: "pointer", color: "var(--ink2)", marginRight: 6
+            }}
+          >
+            <option value="en">🇺🇸 EN</option>
+            <option value="es">🇨🇴 ES</option>
+            <option value="fr">🇫🇷 FR</option>
+            <option value="pt">🇧🇷 PT</option>
+          </select>
           {user ? (
             <>
               <span style={{ fontSize: 13, color: "var(--muted)" }} className="hide-mobile">
