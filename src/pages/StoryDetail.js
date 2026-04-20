@@ -19,6 +19,7 @@ export default function StoryDetail() {
   const [authorProfile, setAuthorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const plan = localStorage.getItem("sf_plan") || "free";
   const canRead = s => s.tier === "free" || plan !== "free" || s.authorId === user?.id;
@@ -35,14 +36,21 @@ export default function StoryDetail() {
     });
   }, [slug]);
 
+  function showToast(icon, message) {
+    setToast({ icon, message });
+    setTimeout(() => setToast(null), 2600);
+  }
+
   async function handleLike() {
     if (!user) return alert(t("sign_in_to_interact"));
     if (submitting) return;
+    const wasLiked = user?.likedStories?.includes(slug);
     setSubmitting(true);
     try {
       const res = await toggleLike(token, slug);
       setStory(s => ({ ...s, likes: res.likes }));
       updateUser({ likedStories: res.likedStories });
+      showToast(wasLiked ? "🤍" : "❤️", wasLiked ? t("toast_unliked") : t("toast_liked"));
     } finally {
       setSubmitting(false);
     }
@@ -51,11 +59,16 @@ export default function StoryDetail() {
   async function handleFollow() {
     if (!user) return alert(t("sign_in_to_interact"));
     if (submitting) return;
+    const wasFollowing = user?.following?.includes(story.authorId);
     setSubmitting(true);
     try {
       const res = await toggleFollow(token, story.authorId);
       setAuthorProfile(p => ({ ...p, followers: res.followersCount }));
       updateUser({ following: res.following });
+      showToast(
+        wasFollowing ? "👋" : "✨", 
+        wasFollowing ? t("toast_unfollowed", story.author) : t("toast_followed", story.author)
+      );
     } finally {
       setSubmitting(false);
     }
@@ -71,7 +84,7 @@ export default function StoryDetail() {
 
   const accent = story.accentColor || "#b8822a";
   const locked = !canRead(story);
-  const isOwner = user?.id === story.authorId;
+  const isOwner = user?.id === story.authorId || user?.name === story.author;
 
   return (
     <div style={{ maxWidth: 720, margin: "0 auto" }}>
@@ -166,6 +179,16 @@ export default function StoryDetail() {
               {user?.following?.includes(story.authorId) ? t("btn_following") : t("btn_follow")}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="toast-container">
+          <div className="toast">
+            <span className="toast-icon">{toast.icon}</span>
+            {toast.message}
+          </div>
         </div>
       )}
     </div>

@@ -20,7 +20,7 @@ export default function Dashboard() {
       getStories(),
       getAuthorProfile(user.id)
     ]).then(([all, profile]) => {
-      setStories(all.filter(s => s.authorId === user.id));
+      setStories(all.filter(s => s.authorId === user.id || s.author === user.name));
       setAuthorProfile(profile);
       setLoading(false);
     });

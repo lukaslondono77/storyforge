@@ -83,6 +83,14 @@ const translations = {
     perk3: "New stories weekly",
     perk4: "Author Q&A access",
     
+    // Toasts
+    toast_followed: (name) => `You are now following ${name}!`,
+    toast_unfollowed: (name) => `You unfollowed ${name}`,
+    toast_liked: "You liked this story! ❤️",
+    toast_unliked: "Like removed",
+    nav_signin: "Sign in",
+    nav_start: "Start writing",
+
     // Header
     nav_discover: "Discover",
     nav_plans: "Plans",
@@ -219,6 +227,14 @@ const translations = {
     perk3: "Nuevas historias semanales",
     perk4: "Acceso a Q&A del autor",
     
+    // Toasts
+    toast_followed: (name) => `¡Ahora sigues a ${name}!`,
+    toast_unfollowed: (name) => `Dejaste de seguir a ${name}`,
+    toast_liked: "¡Te gusta esta historia! ❤️",
+    toast_unliked: "Ya no te gusta",
+    nav_signin: "Iniciar sesión",
+    nav_start: "Empieza a escribir",
+
     // Header
     nav_discover: "Descubrir",
     nav_plans: "Planes",
