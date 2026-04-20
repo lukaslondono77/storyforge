@@ -50,8 +50,6 @@ export function Register() {
           <select className="form-control" value={form.language} onChange={set("language")}>
             <option value="en">🇺🇸 English</option>
             <option value="es">🇨🇴 Español</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="pt">🇧🇷 Português</option>
           </select>
         </div>
         <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "12px", fontSize: 14, marginTop: 4 }} disabled={loading}>

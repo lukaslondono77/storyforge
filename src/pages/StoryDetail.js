@@ -24,20 +24,16 @@ export default function StoryDetail() {
   const canRead = s => s.tier === "free" || plan !== "free" || s.authorId === user?.id;
 
   useEffect(() => {
-    getStory(slug).then(s => { 
+    getStory(slug).then(async s => { 
       setStory(s); 
       if (s) {
         incrementRead(slug);
-        getAuthorProfile(s.authorId).then(setAuthorProfile);
-      } else {
-        setLoading(false);
+        const profile = await getAuthorProfile(s.authorId);
+        setAuthorProfile(profile || {});
       }
+      setLoading(false);
     });
   }, [slug]);
-
-  useEffect(() => {
-    if (story && authorProfile) setLoading(false);
-  }, [story, authorProfile]);
 
   async function handleLike() {
     if (!user) return alert(t("sign_in_to_interact"));
