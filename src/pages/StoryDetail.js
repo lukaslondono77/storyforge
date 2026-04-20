@@ -51,6 +51,8 @@ export default function StoryDetail() {
       setStory(s => ({ ...s, likes: res.likes }));
       updateUser({ likedStories: res.likedStories });
       showToast(wasLiked ? "🤍" : "❤️", wasLiked ? t("toast_unliked") : t("toast_liked"));
+    } catch (e) {
+      showToast("⚠️", e.message);
     } finally {
       setSubmitting(false);
     }
@@ -69,6 +71,8 @@ export default function StoryDetail() {
         wasFollowing ? "👋" : "✨", 
         wasFollowing ? t("toast_unfollowed", story.author) : t("toast_followed", story.author)
       );
+    } catch (e) {
+      showToast("⚠️", e.message);
     } finally {
       setSubmitting(false);
     }

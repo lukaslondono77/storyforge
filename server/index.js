@@ -180,8 +180,7 @@ app.post("/api/users/:id/follow", requireAuth, (req, res) => {
   if (req.params.id === req.user.id) return res.status(400).json({ error: "Cannot follow yourself" });
   const users = readUsers();
   const readerIndex = users.findIndex(u => u.id === req.user.id);
-  const authorIndex = users.findIndex(u => u.id === req.params.id);
-  if (readerIndex === -1 || authorIndex === -1) return res.status(404).json({ error: "User not found" });
+  if (readerIndex === -1) return res.status(404).json({ error: "User not found" });
   
   const reader = users[readerIndex];
   reader.following = reader.following || [];
