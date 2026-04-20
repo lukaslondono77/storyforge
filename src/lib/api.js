@@ -43,3 +43,27 @@ export async function updateStory(token, slug, story) {
 export async function incrementRead(slug) {
   fetch(`/api/stories/${slug}/read`, { method: "POST" }).catch(() => {});
 }
+
+export async function toggleLike(token, slug) {
+  const r = await fetch(`/api/stories/${slug}/like`, {
+    method: "POST",
+    headers: { ...authHeader(token) }
+  });
+  if (!r.ok) throw new Error("Failed to toggle like");
+  return r.json();
+}
+
+export async function toggleFollow(token, authorId) {
+  const r = await fetch(`/api/users/${authorId}/follow`, {
+    method: "POST",
+    headers: { ...authHeader(token) }
+  });
+  if (!r.ok) throw new Error("Failed to toggle follow");
+  return r.json();
+}
+
+export async function getAuthorProfile(authorId) {
+  const r = await fetch(`/api/users/${authorId}/profile`);
+  if (!r.ok) return null;
+  return r.json();
+}

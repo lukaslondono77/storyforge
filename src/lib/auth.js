@@ -56,8 +56,12 @@ export function AuthProvider({ children }) {
 
   function logout() { clearAuth(); }
 
+  function updateUser(updates) {
+    if (user) setUser({ ...user, ...updates });
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, register, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, register, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

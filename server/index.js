@@ -92,6 +92,7 @@ function storyToMarkdown(story) {
     `date: "${story.date || new Date().toISOString()}"`,
     `subscribers: ${story.subscribers || 0}`,
     `reads: ${story.reads || 0}`,
+    `likes: ${story.likes || 0}`,
     "---",
     "",
     story.body,
@@ -142,7 +143,7 @@ app.post("/api/auth/register", async (req, res) => {
   writeUsers(users);
 
   const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  res.json({ token, user: { id: user.id, name: user.name, email: user.email, following: user.following || [], likedStories: user.likedStories || [] } });
 });
 
 // POST /api/auth/login
@@ -155,12 +156,46 @@ app.post("/api/auth/login", async (req, res) => {
   if (!ok) return res.status(401).json({ error: "Incorrect password." });
 
   const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  res.json({ token, user: { id: user.id, name: user.name, email: user.email, following: user.following || [], likedStories: user.likedStories || [] } });
 });
 
 // GET /api/auth/me  (verify token + return user)
 app.get("/api/auth/me", requireAuth, (req, res) => {
-  res.json({ user: req.user });
+  const user = findUser(req.user.email);
+  if (!user) return res.status(401).json({ error: "User not found" });
+  res.json({ user: { id: user.id, name: user.name, email: user.email, following: user.following || [], likedStories: user.likedStories || [] } });
+});
+
+// GET /api/users/:id/profile (public author profile with followers count)
+app.get("/api/users/:id/profile", (req, res) => {
+  const users = readUsers();
+  const author = users.find(u => u.id === req.params.id);
+  if (!author) return res.status(404).json({ error: "Author not found" });
+  const followersCount = users.filter(u => u.following?.includes(author.id)).length;
+  res.json({ id: author.id, name: author.name, followers: followersCount });
+});
+
+// POST /api/users/:id/follow (toggle follow)
+app.post("/api/users/:id/follow", requireAuth, (req, res) => {
+  if (req.params.id === req.user.id) return res.status(400).json({ error: "Cannot follow yourself" });
+  const users = readUsers();
+  const readerIndex = users.findIndex(u => u.id === req.user.id);
+  const authorIndex = users.findIndex(u => u.id === req.params.id);
+  if (readerIndex === -1 || authorIndex === -1) return res.status(404).json({ error: "User not found" });
+  
+  const reader = users[readerIndex];
+  reader.following = reader.following || [];
+  const isFollowing = reader.following.includes(req.params.id);
+  
+  if (isFollowing) {
+    reader.following = reader.following.filter(id => id !== req.params.id);
+  } else {
+    reader.following.push(req.params.id);
+  }
+  writeUsers(users);
+  
+  const followersCount = users.filter(u => u.following?.includes(req.params.id)).length;
+  res.json({ following: reader.following, followersCount });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -246,6 +281,38 @@ app.post("/api/stories/:slug/read", async (req, res) => {
     story.reads   = (story.reads || 0) + 1;
     await ghPut(`stories/${req.params.slug}.md`, storyToMarkdown(story), file.sha, `Read: ${req.params.slug}`);
     res.json({ reads: story.reads });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/stories/:slug/like  — toggle like
+app.post("/api/stories/:slug/like", requireAuth, async (req, res) => {
+  try {
+    const users = readUsers();
+    const userIndex = users.findIndex(u => u.id === req.user.id);
+    if (userIndex === -1) return res.status(404).json({ error: "User not found" });
+    
+    const user = users[userIndex];
+    user.likedStories = user.likedStories || [];
+    const isLiked = user.likedStories.includes(req.params.slug);
+    
+    if (isLiked) {
+      user.likedStories = user.likedStories.filter(s => s !== req.params.slug);
+    } else {
+      user.likedStories.push(req.params.slug);
+    }
+    writeUsers(users);
+
+    const file = await ghGet(`stories/${req.params.slug}.md`);
+    if (file) {
+      const story = parseMd(decode(file.content), `${req.params.slug}.md`, file.sha);
+      story.likes = isLiked ? Math.max(0, (story.likes || 0) - 1) : (story.likes || 0) + 1;
+      await ghPut(`stories/${req.params.slug}.md`, storyToMarkdown(story), file.sha, `${isLiked ? 'Unlike' : 'Like'}: ${req.params.slug}`);
+      res.json({ likes: story.likes, likedStories: user.likedStories });
+    } else {
+      res.json({ likedStories: user.likedStories });
+    }
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { getStory, incrementRead } from "../lib/api";
+import { getStory, incrementRead, toggleLike, toggleFollow, getAuthorProfile } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { useI18n } from "../lib/i18n";
 
@@ -13,17 +13,57 @@ const CAT_ICONS  = { story:"📖", poetry:"🎭", theater:"🎬", essay:"✍️"
 export default function StoryDetail() {
   const { slug }   = useParams();
   const navigate   = useNavigate();
-  const { user }   = useAuth();
+  const { user, token, updateUser } = useAuth();
   const { t }      = useI18n();
   const [story, setStory] = useState(null);
+  const [authorProfile, setAuthorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const plan = localStorage.getItem("sf_plan") || "free";
   const canRead = s => s.tier === "free" || plan !== "free" || s.authorId === user?.id;
 
   useEffect(() => {
-    getStory(slug).then(s => { setStory(s); setLoading(false); if (s) incrementRead(slug); });
+    getStory(slug).then(s => { 
+      setStory(s); 
+      if (s) {
+        incrementRead(slug);
+        getAuthorProfile(s.authorId).then(setAuthorProfile);
+      } else {
+        setLoading(false);
+      }
+    });
   }, [slug]);
+
+  useEffect(() => {
+    if (story && authorProfile) setLoading(false);
+  }, [story, authorProfile]);
+
+  async function handleLike() {
+    if (!user) return alert(t("sign_in_to_interact"));
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await toggleLike(token, slug);
+      setStory(s => ({ ...s, likes: res.likes }));
+      updateUser({ likedStories: res.likedStories });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleFollow() {
+    if (!user) return alert(t("sign_in_to_interact"));
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await toggleFollow(token, story.authorId);
+      setAuthorProfile(p => ({ ...p, followers: res.followersCount }));
+      updateUser({ following: res.following });
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (loading) return <div className="spinner-wrap"><div className="spinner" /></div>;
   if (!story)  return (
@@ -59,12 +99,27 @@ export default function StoryDetail() {
             {t("written_by")} <strong style={{ color: "var(--ink2)" }}>{story.author}</strong>
           </span>
           <span className={`badge badge-${story.tier}`}>{t(`tier_${story.tier}`)}</span>
-          {isOwner && <Link to={`/edit/${story.slug}`} className="btn btn-outline btn-sm">{t("edit")}</Link>}
+          {isOwner ? (
+            <Link to={`/edit/${story.slug}`} className="btn btn-outline btn-sm">{t("edit")}</Link>
+          ) : (
+            <button onClick={handleLike} disabled={submitting} className="btn btn-sm" style={{ 
+              background: user?.likedStories?.includes(story.slug) ? "var(--bg2)" : "#fff",
+              border: "1px solid var(--border)", 
+              color: user?.likedStories?.includes(story.slug) ? "var(--gold)" : "var(--muted)",
+              display: "flex", alignItems: "center", gap: 6
+            }}>
+              {user?.likedStories?.includes(story.slug) ? "❤️" : "🤍"} {story.likes || 0}
+            </button>
+          )}
         </div>
       </div>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 36 }}>
-        {[{ val: story.reads || 0, lbl: t("stat_reads") }, { val: story.subscribers || 0, lbl: t("stat_subs") }].map(s => (
+        {[
+          { val: story.reads || 0, lbl: t("stat_reads") }, 
+          { val: authorProfile?.followers || 0, lbl: t("stat_subs") },
+          { val: story.likes || 0, lbl: t("stat_likes") }
+        ].map(s => (
           <div key={s.lbl} className="stat-card" style={{ flex: 1, textAlign: "center" }}>
             <div className="stat-val">{s.val >= 1000 ? `${(s.val/1000).toFixed(1)}k` : s.val}</div>
             <div className="stat-lbl">{s.lbl}</div>
@@ -96,14 +151,25 @@ export default function StoryDetail() {
       </div>
 
       {!locked && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 24px", marginTop: 24, display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 48, height: 48, borderRadius: "50%", background: accent+"22", border: `2px solid ${accent}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: accent, flexShrink: 0 }}>
-            {story.author?.[0]?.toUpperCase() || "A"}
+        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "20px 24px", marginTop: 24, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ width: 48, height: 48, borderRadius: "50%", background: accent+"22", border: `2px solid ${accent}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: accent, flexShrink: 0 }}>
+              {story.author?.[0]?.toUpperCase() || "A"}
+            </div>
+            <div>
+              <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>{t("written_by")}</p>
+              <p style={{ fontSize: 16, fontWeight: 500 }}>{story.author}</p>
+            </div>
           </div>
-          <div>
-            <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 2 }}>{t("written_by")}</p>
-            <p style={{ fontSize: 16, fontWeight: 500 }}>{story.author}</p>
-          </div>
+          {!isOwner && (
+            <button onClick={handleFollow} disabled={submitting} className="btn btn-sm" style={{ 
+              background: user?.following?.includes(story.authorId) ? "var(--bg2)" : "var(--ink)",
+              color: user?.following?.includes(story.authorId) ? "var(--ink)" : "#fff",
+              border: user?.following?.includes(story.authorId) ? "1px solid var(--border)" : "1px solid transparent",
+            }}>
+              {user?.following?.includes(story.authorId) ? t("btn_following") : t("btn_follow")}
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 // src/pages/Dashboard.js
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getStories } from "../lib/api";
+import { getStories, getAuthorProfile } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { useI18n } from "../lib/i18n";
 
@@ -11,11 +11,19 @@ export default function Dashboard() {
   const { user }   = useAuth();
   const { t }      = useI18n();
   const [stories, setStories] = useState([]);
+  const [authorProfile, setAuthorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return setLoading(false);
-    getStories().then(all => { setStories(all.filter(s => s.authorId === user.id)); setLoading(false); });
+    Promise.all([
+      getStories(),
+      getAuthorProfile(user.id)
+    ]).then(([all, profile]) => {
+      setStories(all.filter(s => s.authorId === user.id));
+      setAuthorProfile(profile);
+      setLoading(false);
+    });
   }, [user]);
 
   if (!user) return (
@@ -28,7 +36,7 @@ export default function Dashboard() {
   if (loading) return <div className="spinner-wrap"><div className="spinner" /></div>;
 
   const totalReads = stories.reduce((a, s) => a + (s.reads || 0), 0);
-  const totalSubs  = stories.reduce((a, s) => a + (s.subscribers || 0), 0);
+  const totalLikes = stories.reduce((a, s) => a + (s.likes || 0), 0);
   const paidCount  = stories.filter(s => s.tier === "paid").length;
 
   return (
@@ -46,9 +54,9 @@ export default function Dashboard() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 36 }}>
         {[
-          { val: stories.length,                lbl: t("stat_published") },
+          { val: authorProfile?.followers || 0, lbl: t("stat_subs")      },
           { val: totalReads.toLocaleString(),   lbl: t("stat_reads")     },
-          { val: totalSubs.toLocaleString(),    lbl: t("stat_subs")      },
+          { val: totalLikes.toLocaleString(),   lbl: t("stat_likes")     },
           { val: paidCount,                     lbl: t("stat_paid")      },
         ].map(s => (
           <div key={s.lbl} className="stat-card" style={{ textAlign: "center" }}>
@@ -70,7 +78,7 @@ export default function Dashboard() {
       ) : (
         <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 90px 90px 90px 120px", padding: "12px 24px", background: "var(--bg2)", borderBottom: "1px solid var(--border)" }}>
-            {[t("col_title"), t("col_category"), t("col_tier"), t("col_reads"), t("col_subs"), ""].map((h, i) => (
+            {[t("col_title"), t("col_category"), t("col_tier"), t("col_reads"), t("stat_likes"), ""].map((h, i) => (
               <span key={i} style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</span>
             ))}
           </div>
@@ -89,7 +97,7 @@ export default function Dashboard() {
                 <span style={{ fontSize: 13, color: "var(--muted)" }}>{CAT_ICONS[s.category] || "📖"} {s.category}</span>
                 <span className={`badge badge-${s.tier}`}>{t(`tier_${s.tier}`)}</span>
                 <span style={{ fontSize: 14, color: "var(--ink2)" }}>{(s.reads || 0).toLocaleString()}</span>
-                <span style={{ fontSize: 14, color: "var(--ink2)" }}>{(s.subscribers || 0).toLocaleString()}</span>
+                <span style={{ fontSize: 14, color: "var(--ink2)" }}>{(s.likes || 0).toLocaleString()}</span>
                 <div style={{ display: "flex", gap: 6 }}>
                   <Link to={`/edit/${s.slug}`} className="btn btn-outline btn-sm">{t("edit")}</Link>
                   <Link to={`/story/${s.slug}`} className="btn btn-sm" style={{ background: "var(--bg)", border: "1px solid var(--border)", color: "var(--muted)" }}>{t("view")}</Link>
