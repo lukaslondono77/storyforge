@@ -8,7 +8,7 @@ excerpt: "El coco te comera "
 accentColor: "#b8822a"
 date: "2026-04-20T19:26:36.704Z"
 subscribers: 0
-reads: 5
+reads: 6
 ---
 
 En el barrio Soledad 2000, todos hablaban del Coco… pero no como algo aterrador, sino como el peor vecino posible.
