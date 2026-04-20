@@ -9,7 +9,7 @@ accentColor: "#b8822a"
 date: "2026-04-20T19:51:25.471Z"
 subscribers: 0
 reads: 21
-likes: 1
+likes: 2
 ---
 
 La leyenda cuenta que hace tiempo, mucho tiempo atrás, en una tierra lejana existió un pequeño dios guerrero llamado Axzkulh, heredero del supremo dios de los mundos etéreos, el gran Ukuk-Ukán. Su reino se extendía desde las imponentes esferas del alba, hasta los inescrutables y refulgentes círculos donde las flores paren la luz y las sombras. Los habitantes de aquel imperio vivían regocijados por la apacible calma de los frondosos árboles cargados con frutos de sabiduría, y bajo el cálido susurro de los manantiales de la cordura gozaban de la eternidad.
