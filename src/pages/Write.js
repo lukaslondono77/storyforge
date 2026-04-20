@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { publishStory, updateStory, getStory } from "../lib/api";
+import { useI18n } from "../lib/i18n";
 
 const GENRES  = ["Fantasy", "Cyberpunk", "Literary", "Steampunk", "Horror", "Romance", "Sci-Fi", "Mystery", "Thriller", "Adventure"];
 const ACCENTS = [
@@ -17,6 +18,7 @@ const ACCENTS = [
 export default function Write() {
   const { slug }         = useParams(); // if editing
   const { user, token }  = useAuth();
+  const { t }            = useI18n();
   const navigate         = useNavigate();
   const isEditing        = Boolean(slug);
 
@@ -94,13 +96,13 @@ export default function Write() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36 }}>
         <div>
           <h1 style={{ fontSize: 34, marginBottom: 4 }}>
-            {isEditing ? "Edit your story" : "Write a new story"}
+            {isEditing ? t("edit_title") : t("write_title")}
           </h1>
           <p style={{ color: "var(--muted)", fontSize: 14 }}>
-            {isEditing ? "Changes save directly to your published story." : "Fill in the details and hit publish — it's that simple."}
+            {isEditing ? t("edit_sub") : t("write_sub")}
           </p>
         </div>
-        <span style={{ fontSize: 13, color: "var(--dim)" }}>{wordCount.toLocaleString()} words</span>
+        <span style={{ fontSize: 13, color: "var(--dim)" }}>{wordCount.toLocaleString()} {t("words")}</span>
       </div>
 
       {error   && <div className="alert alert-error">{error}</div>}
@@ -112,38 +114,38 @@ export default function Write() {
         padding: "24px 28px", marginBottom: 20,
       }}>
         <h3 style={{ fontSize: 14, fontFamily: "var(--sans)", fontWeight: 600, marginBottom: 20, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-          Story details
+          {t("story_details")}
         </h3>
         <div className="form-group">
-          <label>Title *</label>
+          <label>{t("lbl_title")}</label>
           <input className="form-control" type="text"
-            placeholder="Give your story a title…"
+            placeholder={t("title_ph")}
             value={form.title} onChange={set("title")}
             style={{ fontSize: 20, fontFamily: "var(--serif)" }} />
         </div>
 
         <div className="form-group">
-          <label>Short teaser — shown on the story card and paywall *</label>
+          <label>{t("lbl_excerpt")}</label>
           <input className="form-control" type="text"
-            placeholder="One sentence that makes readers need to know more…"
+            placeholder={t("excerpt_ph")}
             value={form.excerpt} onChange={set("excerpt")} />
           <p style={{ fontSize: 12, color: "var(--dim)", marginTop: 5 }}>
-            Keep it under 120 characters for best results.
+            {t("excerpt_hint")}
           </p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label>Genre</label>
+            <label>{t("lbl_genre")}</label>
             <select className="form-control" value={form.genre} onChange={set("genre")}>
               {GENRES.map(g => <option key={g}>{g}</option>)}
             </select>
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label>Who can read this?</label>
+            <label>{t("lbl_tier")}</label>
             <select className="form-control" value={form.tier} onChange={set("tier")}>
-              <option value="free">Everyone — free to read</option>
-              <option value="paid">Subscribers only — paid</option>
+              <option value="free">{t("tier_everyone")}</option>
+              <option value="paid">{t("tier_subs")}</option>
             </select>
           </div>
         </div>
@@ -151,7 +153,7 @@ export default function Write() {
         {/* Accent color */}
         <div style={{ marginTop: 20 }}>
           <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink2)", marginBottom: 10 }}>
-            Story color (shows on your card)
+            {t("lbl_color")}
           </label>
           <div style={{ display: "flex", gap: 10 }}>
             {ACCENTS.map(a => (
@@ -172,26 +174,26 @@ export default function Write() {
         {/* Tab bar */}
         <div style={{ borderBottom: "1px solid var(--border)", display: "flex", padding: "0 4px" }}>
           {[
-            { id: "write",   label: "✍️ Write"   },
-            { id: "preview", label: "👁 Preview" },
-            { id: "tips",    label: "💡 Tips"    },
-          ].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            { id: "write",   label: t("tab_write")   },
+            { id: "preview", label: t("tab_preview") },
+            { id: "tips",    label: t("tab_tips")    },
+          ].map(tObj => (
+            <button key={tObj.id} onClick={() => setTab(tObj.id)}
               style={{
                 background: "none", border: "none", cursor: "pointer",
                 padding: "14px 18px", fontSize: 13, fontFamily: "var(--sans)",
-                color: tab === t.id ? "var(--ink)" : "var(--muted)",
-                fontWeight: tab === t.id ? 600 : 400,
-                borderBottom: tab === t.id ? "2px solid var(--gold)" : "2px solid transparent",
+                color: tab === tObj.id ? "var(--ink)" : "var(--muted)",
+                fontWeight: tab === tObj.id ? 600 : 400,
+                borderBottom: tab === tObj.id ? "2px solid var(--gold)" : "2px solid transparent",
                 marginBottom: -1,
-              }}>{t.label}</button>
+              }}>{tObj.label}</button>
           ))}
         </div>
 
         <div style={{ padding: "24px 28px" }}>
           {tab === "write" && (
             <textarea className="form-control" value={form.body} onChange={set("body")}
-              placeholder={"Start writing your story here…\n\nYou can use:\n# Headings\n**bold text**\n*italic text*\n> Blockquotes for dramatic effect"}
+              placeholder={t("write_ph")}
               style={{ minHeight: 460, fontFamily: "var(--serif)", fontSize: 17, lineHeight: 1.8, border: "none", padding: 0, boxShadow: "none" }}
             />
           )}
@@ -213,7 +215,7 @@ export default function Write() {
                 </div>
               ) : (
                 <p style={{ color: "var(--dim)", fontStyle: "italic", textAlign: "center", padding: "40px 0" }}>
-                  Nothing to preview yet — start writing!
+                  {t("preview_empty")}
                 </p>
               )}
             </div>
@@ -221,14 +223,14 @@ export default function Write() {
 
           {tab === "tips" && (
             <div style={{ maxWidth: 560 }}>
-              <h3 style={{ fontSize: 18, marginBottom: 20, fontFamily: "var(--serif)" }}>Writing tips & formatting</h3>
+              <h3 style={{ fontSize: 18, marginBottom: 20, fontFamily: "var(--serif)" }}>{t("tips_title")}</h3>
               {[
-                ["# Big heading",     "Creates a large chapter title"],
-                ["## Small heading",  "Creates a section title"],
-                ["**bold text**",     "Makes text bold"],
-                ["*italic text*",     "Makes text italic"],
-                ["> This is a quote", "Creates a stylish blockquote"],
-                ["---",               "Adds a horizontal divider between sections"],
+                ["# Big heading",     t("tip_h1")],
+                ["## Small heading",  t("tip_h2")],
+                ["**bold text**",     t("tip_bold")],
+                ["*italic text*",     t("tip_italic")],
+                ["> This is a quote", t("tip_quote")],
+                ["---",               t("tip_hr")],
               ].map(([code, desc]) => (
                 <div key={code} style={{ display: "flex", gap: 20, marginBottom: 16, alignItems: "center" }}>
                   <code style={{
@@ -240,7 +242,7 @@ export default function Write() {
                 </div>
               ))}
               <div style={{ marginTop: 24, padding: "16px 20px", background: "var(--bg2)", borderRadius: 8, fontSize: 14, color: "var(--muted)" }}>
-                💡 <strong>Tip:</strong> Leave a blank line between paragraphs. Readers love short, punchy paragraphs — aim for 3–5 sentences each.
+                {t("tip_note")}
               </div>
             </div>
           )}
@@ -250,12 +252,12 @@ export default function Write() {
       {/* Actions */}
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button onClick={save} className="btn btn-gold" disabled={saving} style={{ fontSize: 15, padding: "12px 28px" }}>
-          {saving ? "Publishing…" : isEditing ? "Save changes" : "✦ Publish story"}
+          {saving ? t("btn_publishing") : isEditing ? t("btn_save") : t("btn_publish")}
         </button>
-        <button onClick={() => navigate(-1)} className="btn btn-outline">Cancel</button>
+        <button onClick={() => navigate(-1)} className="btn btn-outline">{t("btn_cancel")}</button>
         {form.tier === "paid" && (
           <span style={{ fontSize: 13, color: "var(--muted)", marginLeft: 8 }}>
-            🔒 This story will only be visible to subscribers
+            {t("paid_lock")}
           </span>
         )}
       </div>

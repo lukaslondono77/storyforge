@@ -34,10 +34,10 @@ export default function Discover() {
       {/* Hero */}
       <div style={{ marginBottom: 48, maxWidth: 560 }}>
         <h1 style={{ fontSize: 48, lineHeight: 1.1, marginBottom: 14 }}>
-          Stories worth<br /><em>disappearing into.</em>
+          {t("hero_title_1")}<br /><em>{t("hero_title_2")}</em>
         </h1>
         <p style={{ fontSize: 16, color: "var(--muted)", lineHeight: 1.6 }}>
-          Independent writers. Real stories. Free to publish, free to read.
+          {t("hero_sub")}
         </p>
       </div>
 
@@ -45,7 +45,7 @@ export default function Discover() {
       <div style={{ display: "flex", gap: 12, marginBottom: 32, flexWrap: "wrap", alignItems: "center" }}>
         {/* Search */}
         <input
-          className="form-control" placeholder="Search stories or authors…"
+          className="form-control" placeholder={t("search_placeholder")}
           value={search} onChange={e => setSearch(e.target.value)}
           style={{ width: 240, padding: "8px 14px", fontSize: 14 }}
         />
@@ -74,7 +74,7 @@ export default function Discover() {
                 color: tier === tierOpt ? "#fff" : "var(--muted)",
                 borderColor: tier === tierOpt ? "var(--gold)" : "var(--border)",
                 fontSize: 12,
-              }}>{tierOpt === "All" ? "All tiers" : t(`tier_${tierOpt}`)}</button>
+              }}>{tierOpt === "All" ? t("all_tiers") : t(`tier_${tierOpt}`)}</button>
           ))}
         </div>
       </div>
@@ -84,11 +84,11 @@ export default function Discover() {
         <div style={{ textAlign: "center", padding: "80px 0" }}>
           <p style={{ fontSize: 40, marginBottom: 16 }}>✦</p>
           <p style={{ fontSize: 18, color: "var(--muted)", marginBottom: 8 }}>
-            {stories.length === 0 ? "No stories published yet." : "No stories match your filters."}
+            {stories.length === 0 ? t("no_stories") : t("no_match")}
           </p>
           {stories.length === 0 && (
             <Link to="/register" className="btn btn-primary" style={{ marginTop: 16 }}>
-              Be the first writer →
+              {t("be_first")}
             </Link>
           )}
         </div>

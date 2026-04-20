@@ -6,7 +6,7 @@ import { useI18n } from "../lib/i18n";
 
 export default function Header() {
   const { user, logout } = useAuth();
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const { pathname }     = useLocation();
   const navigate         = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -42,11 +42,11 @@ export default function Header() {
 
         {/* Nav */}
         <nav style={{ display: "flex", gap: 28, alignItems: "center" }} className="hide-mobile">
-          <Link to="/"      style={{ textDecoration: "none", fontSize: 14, ...active("/") }}>Discover</Link>
-          <Link to="/plans" style={{ textDecoration: "none", fontSize: 14, ...active("/plans") }}>Plans</Link>
+          <Link to="/"      style={{ textDecoration: "none", fontSize: 14, ...active("/") }}>{t("nav_discover")}</Link>
+          <Link to="/plans" style={{ textDecoration: "none", fontSize: 14, ...active("/plans") }}>{t("nav_plans")}</Link>
           {user && <>
-            <Link to="/write"     style={{ textDecoration: "none", fontSize: 14, ...active("/write") }}>Write</Link>
-            <Link to="/dashboard" style={{ textDecoration: "none", fontSize: 14, ...active("/dashboard") }}>Dashboard</Link>
+            <Link to="/write"     style={{ textDecoration: "none", fontSize: 14, ...active("/write") }}>{t("nav_write")}</Link>
+            <Link to="/dashboard" style={{ textDecoration: "none", fontSize: 14, ...active("/dashboard") }}>{t("nav_dashboard")}</Link>
           </>}
         </nav>
 
@@ -66,14 +66,14 @@ export default function Header() {
           {user ? (
             <>
               <span style={{ fontSize: 13, color: "var(--muted)" }} className="hide-mobile">
-                Hi, {user.name.split(" ")[0]}
+                {t("hi_user", user.name.split(" ")[0])}
               </span>
-              <button onClick={handleLogout} className="btn btn-outline btn-sm">Sign out</button>
+              <button onClick={handleLogout} className="btn btn-outline btn-sm">{t("nav_signout")}</button>
             </>
           ) : (
             <>
-              <Link to="/login"    className="btn btn-outline btn-sm">Sign in</Link>
-              <Link to="/register" className="btn btn-primary btn-sm">Start writing</Link>
+              <Link to="/login"    className="btn btn-outline btn-sm">{t("nav_signin")}</Link>
+              <Link to="/register" className="btn btn-primary btn-sm">{t("nav_start")}</Link>
             </>
           )}
         </div>
